@@ -9,7 +9,7 @@ import "C"
 import ("fmt"; "unsafe")
 
 type KyotoDB struct {
-	vp *C.struct___0
+	vp *C.struct___1
 }
 
 type KyotoDBError struct {
@@ -28,8 +28,7 @@ func Open(path string) (kdb *KyotoDB, err error) {
 	kdb = &KyotoDB{p}
 
 	if int(r) == 0 {
-		err = fmt.Errorf("Failed to open DB (%s, %s)",
-			errorType(kdb))
+		err = kyotoError(kdb)
 		C.kcdbdel(p);
 		return
 	}
@@ -39,7 +38,7 @@ func Open(path string) (kdb *KyotoDB, err error) {
 }
 
 func (kdb *KyotoDB) Close() error {
-	if int(C.kcdbclose(kdb.vp)) == 0 {return fmt.Errorf("Cannot close %s", errorType(kdb))}
+	if int(C.kcdbclose(kdb.vp)) == 0 {return kyotoError(kdb)}
 	C.kcdbdel(kdb.vp)
 	return nil
 }
@@ -108,6 +107,48 @@ func (kdb *KyotoDB) Contains(key string) bool {
 	return true
 }
 
+func (kdb *KyotoDB) Count() (count int, err error) {
+	Ccount, _ := C.kcdbcount(kdb.vp)
+
+	if int(Ccount) < 0 {
+		err = kyotoError(kdb)
+		return
+	}
+	count = int(Ccount)
+	return
+}
+
+func (kdb *KyotoDB) KeyList() (list []string, err error) {
+	count, err := kdb.Count()
+	if err != nil {return}
+	list = make([]string, count)
+	cur, _ := C.kcdbcursor(kdb.vp)
+	if cur == nil {return}
+
+	success := C.kccurjump(cur)
+	if int(success) == 0 {
+		err = kyotoError(kdb)
+		return
+	}
+
+	for i := 0; i < count; i++ {
+		var strClen C.size_t
+		strCkey := C.kccurgetkey(cur, &strClen, 1)
+		if strCkey == nil {
+			err = kyotoError(kdb)
+			return
+		}
+		list[i] = C.GoStringN(strCkey, C.int(strClen))
+		C.kcfree(unsafe.Pointer(strCkey))
+	}
+	return
+}
+
+func kyotoError(kdb *KyotoDB) KyotoDBError {
+	return KyotoDBError{int(C.kcdbecode(kdb.vp)),
+		C.GoString(C.kcdbemsg(kdb.vp)),
+		false}
+}
 
 func errorType(kdb *KyotoDB) string {
 	return errorTypeString(int(C.kcdbecode(kdb.vp)))

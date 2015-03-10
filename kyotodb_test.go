@@ -88,10 +88,54 @@ func TestOpen3(t *testing.T) {
 	if err != nil {t.Errorf("Failed to get value")}
 	if v != "124" {t.Errorf("Invalid value %s", v)}
 
+	info.tearDown()
+}
+
+func TestContains(t *testing.T) {
+	info := tearUpWithData(t)
+
 	if ! info.kdb.Contains("ABC") {t.Errorf("Failed while testing contains 1")}
 	if ! info.kdb.Contains("1") {t.Errorf("Failed while testing contains 2")}
 	if info.kdb.Contains("X") {t.Errorf("Failed while testing contains 3")}
 	if info.kdb.Contains("abc") {t.Errorf("Failed while testing contains 4")}
+
+	info.tearDown()
+}
+
+func TestCount(t *testing.T) {
+	info := tearUpWithData(t)
+
+	count, err := info.kdb.Count()
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+	if count != 4 {t.Errorf("Failed to count")}
+
+	info.kdb.Set("!!!", "@@@");
+
+	count, err = info.kdb.Count()
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+	if count != 5 {t.Errorf("Failed to count")}
+
+	info.tearDown()
+}
+
+func TestKeyList(t *testing.T) {
+	info := tearUpWithData(t)
+
+	list, err := info.kdb.KeyList()
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+	if len(list) != 4 {t.Errorf("Invalid number of keys")}
+
+	expectedKeys := [...]string{"A", "z", "1", "ABC"}
+	
+	for _, v := range expectedKeys {
+		found := false
+		for _, r := range expectedKeys {
+			if r == v {found = true}
+		}
+		if ! found {
+			t.Errorf("Cannot find %s", v)
+		}
+	}
 
 	info.tearDown()
 }
