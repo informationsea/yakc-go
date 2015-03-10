@@ -1,6 +1,6 @@
 language: go
 
-env: PKG_CONFIG_PATH=local/lib/pkgconfig LD_LIBRARY_PATH=local/lib
+env: PKG_CONFIG_PATH=local/lib/pkgconfig LD_LIBRARY_PATH=local/lib PATH=/bin:/usr/bin:./local/bin
 
 before_install:
   - bash .travis-before-install.sh
