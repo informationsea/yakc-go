@@ -2,13 +2,17 @@
 
 Yet Another Kyoto Cabinet Binding for GO
 
-# Get code
+## Warning
+
+API of this library is not stable.
+
+## Get code
 
 ````
 go get github.com/informationsea/yakc-go
 ````
 
-# Basic use
+## Basic use
 ````go
 package main
 
