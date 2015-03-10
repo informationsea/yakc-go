@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ "$TRAVIS_BUILD_DIR" = "" ];then
     export TRAVIS_BUILD_DIR="$PWD"

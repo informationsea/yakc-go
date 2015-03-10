@@ -3,7 +3,7 @@ language: go
 env: PKG_CONFIG_PATH=local/lib/pkgconfig
 
 before_install:
-  - sh .travis-before-install.sh
+  - bash .travis-before-install.sh
 
 go:
   - 1.3
