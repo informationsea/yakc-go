@@ -21,7 +21,7 @@ pushd ${FILENAME%.tar.gz}
 sh -c "wget -O - https://gist.github.com/informationsea/fd62daafc40cc4d7dcc4/raw/15ff366c1e40a7f5def917ff74b82df5417b003c/kyotocabinet-1.2.76-clang.patch|patch -p1" || exit 1
 ./configure --prefix=$TRAVIS_BUILD_DIR/local || exit 1
 make && make install || exit 1
-cp -R  local/bin/* $GOPATH/bin/
+cp -R  $TRAVIS_BUILD_DIR/local/bin/* $GOPATH/bin/
 
 popd
 popd
