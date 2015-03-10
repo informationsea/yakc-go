@@ -99,6 +99,10 @@ func (kdb *KyotoDB) Set(key string, value string) (err error) {
 	return
 }
 
+func (kdb *KyotoDB) Contains(key string) () {
+	
+}
+
 
 func errorType(kdb *KyotoDB) string {
 	return errorTypeString(int(C.kcdbecode(kdb.vp)))
