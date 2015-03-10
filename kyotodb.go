@@ -84,12 +84,10 @@ func (kdb *KyotoDB) Set(key string, value string) (err error) {
 	keyCstr := C.CString(key)
 	defer C.free(unsafe.Pointer(keyCstr))
 	keyClen, _ := C.strlen(keyCstr)
-	if err != nil {return}
 
 	valueCstr := C.CString(value)
 	defer C.free(unsafe.Pointer(valueCstr))
 	valueClen, _ := C.strlen(valueCstr)
-	if err != nil {return}
 
 	ret, _ := C.kcdbset(kdb.vp, keyCstr, keyClen, valueCstr, valueClen)
 	if int(ret) == 0 {
@@ -99,8 +97,15 @@ func (kdb *KyotoDB) Set(key string, value string) (err error) {
 	return
 }
 
-func (kdb *KyotoDB) Contains(key string) () {
-	
+func (kdb *KyotoDB) Contains(key string) bool {
+	keyCstr := C.CString(key)
+	defer C.free(unsafe.Pointer(keyCstr))
+	keyClen, _ := C.strlen(keyCstr)
+
+	ret, _ := C.kcdbcheck(kdb.vp, keyCstr, keyClen)
+
+	if int(ret) < 0 {return false}
+	return true
 }
 
 

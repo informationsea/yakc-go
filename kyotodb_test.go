@@ -88,6 +88,11 @@ func TestOpen3(t *testing.T) {
 	if err != nil {t.Errorf("Failed to get value")}
 	if v != "124" {t.Errorf("Invalid value %s", v)}
 
+	if ! info.kdb.Contains("ABC") {t.Errorf("Failed while testing contains 1")}
+	if ! info.kdb.Contains("1") {t.Errorf("Failed while testing contains 2")}
+	if info.kdb.Contains("X") {t.Errorf("Failed while testing contains 3")}
+	if info.kdb.Contains("abc") {t.Errorf("Failed while testing contains 4")}
+
 	info.tearDown()
 }
 
