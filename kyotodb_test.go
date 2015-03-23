@@ -120,6 +120,8 @@ func TestCount(t *testing.T) {
 
 func TestAppend(t *testing.T) {
 	info := tearUpWithData(t)
+	defer info.tearDown()
+	
 	err := info.kdb.Append("ABC", "568");
 	if err != nil {t.Errorf("Cannot append data")}
 
@@ -130,6 +132,7 @@ func TestAppend(t *testing.T) {
 
 func TestPop(t *testing.T) {
 	info := tearUpWithData(t)
+	defer info.tearDown()
 
 	ok := info.kdb.Contains("ABC");
 	if !ok {t.Errorf("data is not found")}
@@ -146,6 +149,7 @@ func TestPop(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	info := tearUpWithData(t)
+	defer info.tearDown()
 	ok := info.kdb.Remove("ABC")
 	if !ok {t.Errorf("Cannot remove data")}
 
@@ -172,6 +176,29 @@ func TestKeyList(t *testing.T) {
 		}
 		if ! found {
 			t.Errorf("Cannot find %s", v)
+		}
+	}
+
+	info.tearDown()
+}
+
+func TestKeyIter(t *testing.T) {
+	info := tearUpWithData(t)
+
+	iter, err := info.kdb.KeyIter()
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+
+	expectedKeys := map[string]bool{"A":false, "z":false, "1":false, "ABC":false}
+
+	for {
+		v, ok := <- iter
+		if !ok {break}
+		expectedKeys[v] = true
+	}
+
+	for k, v := range expectedKeys {
+		if v == false {
+			t.Errorf("%s is not found", k)
 		}
 	}
 

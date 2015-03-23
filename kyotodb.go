@@ -194,6 +194,37 @@ func (kdb *KyotoDB) KeyList() (list []string, err error) {
 	return
 }
 
+func (kdb *KyotoDB) KeyIter() (iter chan string, err error) {
+	count, err := kdb.Count()
+	if err != nil {return}
+	cur, _ := C.kcdbcursor(kdb.vp)
+	if cur == nil {return}
+
+	success := C.kccurjump(cur)
+	if int(success) == 0 {
+		err = kyotoError(kdb)
+		return
+	}
+
+	iter = make(chan string)
+
+	go func() {
+		for i := 0; i < count; i++ {
+			var strClen C.size_t
+			strCkey := C.kccurgetkey(cur, &strClen, 1)
+			if strCkey == nil {
+				err = kyotoError(kdb)
+				return
+			}
+			iter <- C.GoStringN(strCkey, C.int(strClen))
+			C.kcfree(unsafe.Pointer(strCkey))
+		}
+		close(iter)
+	}()
+	return
+}
+
+
 func kyotoError(kdb *KyotoDB) KyotoDBError {
 	return KyotoDBError{int(C.kcdbecode(kdb.vp)),
 		C.GoString(C.kcdbemsg(kdb.vp)),
