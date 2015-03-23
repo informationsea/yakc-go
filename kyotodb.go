@@ -63,6 +63,26 @@ func (kdb *KyotoDB) Get(key string) (value string, err error) {
 	return
 }
 
+func (kdb *KyotoDB) Pop(key string) (value string, err error) {
+	err = nil
+	keyCstr := C.CString(key)
+	defer C.free(unsafe.Pointer(keyCstr))
+	
+	keyClen, _ := C.strlen(keyCstr)
+	
+	var valueLength C.size_t
+	valueCstr, _ := C.kcdbseize(kdb.vp, keyCstr, keyClen, &valueLength)
+	defer C.kcfree(unsafe.Pointer(valueCstr))
+	if valueCstr == nil {
+		value = ""
+		err = KyotoDBError{C.KCESUCCESS, "Not Found", true}
+		return
+	}
+	
+	value = C.GoStringN(valueCstr, C.int(valueLength))
+	return
+}
+
 func (kdb *KyotoDB) GetOrDefault(key string, defaultValue string) (value string, err error) {
 	value, err = kdb.Get(key)
 	if err == nil {return}
@@ -96,12 +116,42 @@ func (kdb *KyotoDB) Set(key string, value string) (err error) {
 	return
 }
 
+func (kdb *KyotoDB) Append(key string, value string) (err error) {
+	err = nil
+	
+	keyCstr := C.CString(key)
+	defer C.free(unsafe.Pointer(keyCstr))
+	keyClen, _ := C.strlen(keyCstr)
+
+	valueCstr := C.CString(value)
+	defer C.free(unsafe.Pointer(valueCstr))
+	valueClen, _ := C.strlen(valueCstr)
+
+	ret, _ := C.kcdbappend(kdb.vp, keyCstr, keyClen, valueCstr, valueClen)
+	if int(ret) == 0 {
+		err = fmt.Errorf("Cannot set value %s = %s (%s)", key, value, errorType(kdb))
+	}
+
+	return
+}
+
 func (kdb *KyotoDB) Contains(key string) bool {
 	keyCstr := C.CString(key)
 	defer C.free(unsafe.Pointer(keyCstr))
 	keyClen, _ := C.strlen(keyCstr)
 
 	ret, _ := C.kcdbcheck(kdb.vp, keyCstr, keyClen)
+
+	if int(ret) < 0 {return false}
+	return true
+}
+
+func (kdb *KyotoDB) Remove(key string) bool {
+	keyCstr := C.CString(key)
+	defer C.free(unsafe.Pointer(keyCstr))
+	keyClen, _ := C.strlen(keyCstr)
+
+	ret, _ := C.kcdbremove(kdb.vp, keyCstr, keyClen)
 
 	if int(ret) < 0 {return false}
 	return true

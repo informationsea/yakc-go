@@ -118,6 +118,44 @@ func TestCount(t *testing.T) {
 	info.tearDown()
 }
 
+func TestAppend(t *testing.T) {
+	info := tearUpWithData(t)
+	err := info.kdb.Append("ABC", "568");
+	if err != nil {t.Errorf("Cannot append data")}
+
+	v, err := info.kdb.Get("ABC");
+	if err != nil {t.Errorf("Cannot get data")}
+	if v != "124568" {t.Errorf("Invalid data")}
+}
+
+func TestPop(t *testing.T) {
+	info := tearUpWithData(t)
+
+	ok := info.kdb.Contains("ABC");
+	if !ok {t.Errorf("data is not found")}
+
+	v, err := info.kdb.Pop("ABC");
+	if err != nil {t.Errorf("Cannot get data %s", err)}
+	if v != "124" {t.Errorf("Invalid data")}
+
+
+	ok = info.kdb.Contains("ABC");
+	if ok {t.Errorf("data is not removed")}
+}
+
+
+func TestRemove(t *testing.T) {
+	info := tearUpWithData(t)
+	ok := info.kdb.Remove("ABC")
+	if !ok {t.Errorf("Cannot remove data")}
+
+	ok = info.kdb.Contains("ABC");
+	if ok {t.Errorf("data is not removed")}
+
+	ok = info.kdb.Contains("1");
+	if !ok {t.Errorf("Wrong data is removed")}
+}
+
 func TestKeyList(t *testing.T) {
 	info := tearUpWithData(t)
 
