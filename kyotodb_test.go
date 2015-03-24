@@ -217,3 +217,30 @@ func TestKeyIter(t *testing.T) {
 	info.tearDown()
 }
 
+func TestIter(t *testing.T) {
+	info := tearUpWithData(t)
+
+	iter, err := info.kdb.Iter()
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+
+	expectedKeys := map[KyotoDBRecord]bool{
+		KyotoDBRecord{"A", "B"}:false,
+		KyotoDBRecord{"z", "y"}:false,
+		KyotoDBRecord{"1", "2"}:false,
+		KyotoDBRecord{"ABC", "124"}:false}
+
+	for {
+		v, ok := <- iter
+		if !ok {break}
+		expectedKeys[v] = true
+	}
+
+	for k, v := range expectedKeys {
+		if v == false {
+			t.Errorf("%s is not found", k)
+		}
+	}
+
+	info.tearDown()
+}
+

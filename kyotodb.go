@@ -8,6 +8,11 @@ import "C"
 
 import ("fmt"; "unsafe")
 
+type KyotoDBRecord struct {
+	Key string
+	Value string
+}
+
 type KyotoDB struct {
 	vp *C.struct___1
 }
@@ -225,6 +230,48 @@ func (kdb *KyotoDB) KeyIter() (iter chan string, err error) {
 			C.kcfree(unsafe.Pointer(strCkey))
 		}
 		close(iter)
+	}()
+	return
+}
+
+func (kdb *KyotoDB) Iter() (iter chan KyotoDBRecord, err error) {
+	count, err := kdb.Count()
+	if err != nil {return}
+	cur, _ := C.kcdbcursor(kdb.vp)
+	if cur == nil {return}
+
+	success := C.kccurjump(cur)
+	if int(success) == 0 {
+		err = kyotoError(kdb)
+		return
+	}
+
+	iter = make(chan KyotoDBRecord, 10)
+
+	go func() {
+		defer close(iter)
+		for i := 0; i < count; i++ {
+			var strCkeylen C.size_t
+			strCkey := C.kccurgetkey(cur, &strCkeylen, 0)
+			if strCkey == nil {
+				err = kyotoError(kdb)
+				fmt.Printf("Error %s\n", err)
+				return
+			}
+
+			var strCvaluelen C.size_t
+			strCvalue := C.kccurgetvalue(cur, &strCvaluelen, 1)
+			if strCvalue == nil {
+				err = kyotoError(kdb)
+				fmt.Printf("Error %s\n", err)
+				return
+			}
+			
+			iter <- KyotoDBRecord{C.GoStringN(strCkey, C.int(strCkeylen)),
+				C.GoStringN(strCvalue, C.int(strCvaluelen))}
+			C.kcfree(unsafe.Pointer(strCkey))
+			C.kcfree(unsafe.Pointer(strCvalue))
+		}
 	}()
 	return
 }
