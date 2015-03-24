@@ -130,6 +130,18 @@ func TestAppend(t *testing.T) {
 	if v != "124568" {t.Errorf("Invalid data")}
 }
 
+func TestClear(t *testing.T) {
+	info := tearUpWithData(t)
+	defer info.tearDown()
+	
+	err := info.kdb.Clear()
+	if err != nil {t.Errorf("Cannot append data")}
+
+	c, err := info.kdb.Count()
+	if err != nil {t.Errorf("Cannot count data")}
+	if c != 0 {t.Errorf("Invalid number of data")}
+}
+
 func TestPop(t *testing.T) {
 	info := tearUpWithData(t)
 	defer info.tearDown()

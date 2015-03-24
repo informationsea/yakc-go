@@ -43,6 +43,11 @@ func (kdb *KyotoDB) Close() error {
 	return nil
 }
 
+func (kdb *KyotoDB) Clear() error {
+	if int(C.kcdbclear(kdb.vp)) == 0 {return kyotoError(kdb)}
+	return nil
+}
+
 func (kdb *KyotoDB) Get(key string) (value string, err error) {
 	err = nil
 	keyCstr := C.CString(key)
