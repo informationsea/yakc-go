@@ -244,3 +244,20 @@ func TestIter(t *testing.T) {
 	info.tearDown()
 }
 
+
+func TestIncrement(t *testing.T) {
+	info := tearUp(t)
+	result, err := info.kdb.Increment("Hi", 0)
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+	if result != 0 {t.Errorf("invalid value %d", result)}
+	result, err = info.kdb.Increment("Hi", 10)
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+	if result != 10 {t.Errorf("invalid value %d", result)}
+	result, err = info.kdb.Increment("Hi", 7)
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+	if result != 17 {t.Errorf("invalid value %d", result)}
+
+	result, err = info.kdb.IncrementWithOrigin("!", 2, 7)
+	if err != nil {t.Errorf("Some error %s", err.Error())}
+	if result != 9 {t.Errorf("invalid value %d", result)}
+}

@@ -2,6 +2,7 @@ package yakc
 
 // #cgo pkg-config: kyotocabinet
 // #include <stdlib.h>
+// #include <stdint.h>
 // #include <kclangc.h>
 // #include <string.h>
 import "C"
@@ -144,6 +145,28 @@ func (kdb *KyotoDB) Append(key string, value string) (err error) {
 
 	return
 }
+
+func (kdb *KyotoDB) IncrementWithOrigin(key string, value int, origin int) (result int, err error) {
+	err = nil
+	
+	keyCstr := C.CString(key)
+	defer C.free(unsafe.Pointer(keyCstr))
+	keyClen, _ := C.strlen(keyCstr)
+
+	ret, _ := C.kcdbincrint(kdb.vp, keyCstr, keyClen, C.int64_t(value), C.int64_t(origin))
+	result = int(ret)
+	if int(result) == C.INT64_MIN {
+		err = fmt.Errorf("Cannot set value %s = %s (%s)", key, value, errorType(kdb))
+	}
+
+	return
+}
+
+func (kdb *KyotoDB) Increment(key string, value int) (result int, err error) {
+	result, err = kdb.IncrementWithOrigin(key, value, 0)
+	return;
+}
+
 
 func (kdb *KyotoDB) Contains(key string) bool {
 	keyCstr := C.CString(key)
